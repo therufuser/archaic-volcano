@@ -4,7 +4,16 @@ RETRO_API unsigned int retro_api_version () {
   return RETRO_API_VERSION;
 }
 
+static retro_environment_t env_cb;
+static retro_video_refresh_t video_cb;
+static retro_audio_sample_t audio_cb;
+static retro_audio_sample_batch_t audio_batch_cb;
+static retro_input_poll_t input_poll_cb;
+static retro_input_state_t input_state_cb;
+
 RETRO_API void retro_set_environment(retro_environment_t cb) {
+  env_cb = cb;
+
   bool no_rom = true;
   cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 }
@@ -16,12 +25,6 @@ static unsigned short buffer[w * h];
 RETRO_API void retro_init() {
 
 }
-
-static retro_video_refresh_t video_cb;
-static retro_audio_sample_t audio_cb;
-static retro_audio_sample_batch_t audio_batch_cb;
-static retro_input_poll_t input_poll_cb;
-static retro_input_state_t input_state_cb;
 
 RETRO_API void retro_set_video_refresh(retro_video_refresh_t cb) {
   video_cb = cb;
@@ -60,6 +63,31 @@ RETRO_API void retro_get_system_info(retro_system_info* info) {
 }
 
 RETRO_API bool retro_load_game(const struct retro_game_info* game) {
+  // Initialize vulkan-context
+  retro_hw_context_reset_t context_reset = nullptr;
+  retro_hw_context_reset_t context_destroy = nullptr;
+  static struct retro_hw_render_callback hw_render = {
+    .context_type = RETRO_HW_CONTEXT_VULKAN,
+    .context_reset = context_reset,
+    .version_major = VK_MAKE_VERSION(1, 0, 18),
+    .version_minor = 0,
+    .cache_context = true,
+    .context_destroy = context_destroy,
+  };
+  if (!env_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
+    return false;
+  
+  static const struct retro_hw_render_context_negotiation_interface_vulkan iface = {
+    RETRO_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE_VULKAN,
+    RETRO_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE_VULKAN_VERSION,
+    
+    //get_application_info,
+    NULL,
+    NULL,
+  };
+  
+  env_cb(RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE, (void*)&iface);
+
   return true;
 }
 
