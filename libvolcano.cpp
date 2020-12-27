@@ -3,6 +3,8 @@
 
 #include <cstdio>
 
+#include "volcano/volcano.hpp"
+
 #define WIDTH 1280
 #define HEIGHT 720
 
@@ -80,6 +82,8 @@ RETRO_CALLCONV void retro_context_reset() {
   vulkan_symbol_wrapper_init(vulkan->get_instance_proc_addr);
   vulkan_symbol_wrapper_load_core_instance_symbols(vulkan->instance);
   vulkan_symbol_wrapper_load_core_device_symbols(vulkan->device);
+
+  volcano_init(vulkan);
 }
   
 RETRO_API bool retro_load_game(const struct retro_game_info* game) {
