@@ -1,4 +1,5 @@
 #include <libretro_vulkan.h>
+#include <vulkan/vulkan_symbol_wrapper.h>
 
 #define WIDTH 1280
 #define HEIGHT 720
