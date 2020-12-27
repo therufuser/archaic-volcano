@@ -1,4 +1,4 @@
-#include <libretro.h>
+#include <libretro_vulkan.h>
 
 RETRO_API unsigned int retro_api_version () {
   return RETRO_API_VERSION;
