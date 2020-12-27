@@ -1,5 +1,8 @@
 #include <libretro_vulkan.h>
 
+#define WIDTH 1280
+#define HEIGHT 720
+
 RETRO_API unsigned int retro_api_version () {
   return RETRO_API_VERSION;
 }
@@ -17,10 +20,6 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
   bool no_rom = true;
   cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 }
-
-const int w = 1280;
-const int h = 720;
-static unsigned short buffer[w * h];
 
 RETRO_API void retro_init() {
 
@@ -135,24 +134,8 @@ RETRO_API size_t retro_get_memory_size(unsigned id) {
   return 0;
 }
 
-unsigned int abs(int x) {
-  if(x < 0)
-    return -x;
-
-  return x;
-}
-
 RETRO_API void retro_run(void) {
-  for(int y = 0; y < h; y++) {
-    for(int x = 0; x < w; x++) {
-      buffer[x + w * y] = 0;
-      if(abs(x - y) > 10) {
-        buffer[x + w * y] = 65535;
-      }
-    }
-  }
-
-  video_cb(buffer, w, h, sizeof(unsigned short) * w);
+  video_cb(RETRO_HW_FRAME_BUFFER_VALID, WIDTH, HEIGHT, 0);
 }
 
 RETRO_API bool retro_serialize(void *data, size_t size) {
