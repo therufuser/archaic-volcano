@@ -7,6 +7,7 @@ all: libretro_volcano.so
 run: all
 	retroarch -L libretro_volcano.so
 
+libretro-common/vulkan/vulkan_symbol_wrapper.c:
 $(LIBRETRO_INC):
 	git submodule update
 
@@ -16,5 +17,8 @@ $(BUILD_DIR):
 $(BUILD_DIR)/%.o: %.cpp $(BUILD_DIR) $(LIBRETRO_INC)
 	g++ -c $< -I$(LIBRETRO_INC) -o $@
 
-libretro_volcano.so: $(BUILD_DIR)/libvolcano.o
-	g++ -o $@ $< -shared
+$(BUILD_DIR)/vulkan_symbol_wrapper.o: libretro-common/vulkan/vulkan_symbol_wrapper.c $(BUILD_DIR) $(LIBRETRO_INC)
+	gcc -c $< -o $@ -I$(LIBRETRO_INC) -fPIC
+
+libretro_volcano.so: $(BUILD_DIR)/libvolcano.o $(BUILD_DIR)/vulkan_symbol_wrapper.o
+	g++ -o $@ $^ -shared
