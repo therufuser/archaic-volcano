@@ -99,12 +99,16 @@ RETRO_API bool retro_load_game_special(
 }
 
 RETRO_API void retro_get_system_av_info(retro_system_av_info *info) {
-  info->geometry.base_width  = 1280;
-  info->geometry.base_height = 720;
-  info->geometry.max_width   = 1920;
-  info->geometry.max_height  = 1080;
-  info->timing.fps           = 60.0d;
-  info->timing.sample_rate   = 48000.0d;
+  info->geometry = retro_game_geometry {
+    .base_width  = WIDTH,
+    .base_height = HEIGHT,
+    .max_width   = 1920,
+    .max_height  = 1080,
+  };
+  info->timing = retro_system_timing {
+    .fps           = 60.0d,
+    .sample_rate   = 48000.0d,
+  };
 }
 
 RETRO_API size_t retro_serialize_size(void) {
