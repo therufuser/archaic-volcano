@@ -15,7 +15,7 @@ $(BUILD_DIR):
 	mkdir $@
 
 $(BUILD_DIR)/%.o: %.cpp $(BUILD_DIR) $(LIBRETRO_INC)
-	g++ -c $< -I$(LIBRETRO_INC) -o $@
+	g++ -c $< -I$(LIBRETRO_INC) -o $@ -fPIC
 
 $(BUILD_DIR)/vulkan_symbol_wrapper.o: libretro-common/vulkan/vulkan_symbol_wrapper.c $(BUILD_DIR) $(LIBRETRO_INC)
 	gcc -c $< -o $@ -I$(LIBRETRO_INC) -fPIC
