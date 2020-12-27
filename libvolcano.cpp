@@ -62,13 +62,23 @@ RETRO_API void retro_get_system_info(retro_system_info* info) {
   info->block_extract    = false;
 }
 
+static retro_hw_render_interface_vulkan* vulkan;
+
+RETRO_CALLCONV void retro_context_reset() {
+  if(!env_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void**)&vulkan) || !vulkan)
+    return;
+
+  vulkan_symbol_wrapper_init(vulkan->get_instance_proc_addr);
+  vulkan_symbol_wrapper_load_core_instance_symbols(vulkan->instance);
+  vulkan_symbol_wrapper_load_core_device_symbols(vulkan->device);
+}
+  
 RETRO_API bool retro_load_game(const struct retro_game_info* game) {
   // Initialize vulkan-context
-  retro_hw_context_reset_t context_reset = nullptr;
   retro_hw_context_reset_t context_destroy = nullptr;
   static struct retro_hw_render_callback hw_render = {
     .context_type = RETRO_HW_CONTEXT_VULKAN,
-    .context_reset = context_reset,
+    .context_reset = &retro_context_reset,
     .version_major = VK_MAKE_VERSION(1, 0, 18),
     .version_minor = 0,
     .cache_context = true,
