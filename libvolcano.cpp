@@ -1,5 +1,4 @@
 #include <libretro_vulkan.h>
-#include <vulkan/vulkan_symbol_wrapper.h>
 
 #include <cstdio>
 
@@ -78,10 +77,6 @@ RETRO_CALLCONV void retro_context_reset() {
     stderr, "Successfully fetched HW-interface: vulkan:\n\tinterface_version: %d\n\thandle: %p\n",
     vulkan->interface_version, vulkan->handle
   );
-
-  vulkan_symbol_wrapper_init(vulkan->get_instance_proc_addr);
-  vulkan_symbol_wrapper_load_core_instance_symbols(vulkan->instance);
-  vulkan_symbol_wrapper_load_core_device_symbols(vulkan->device);
 
   volcano_init(vulkan);
 }

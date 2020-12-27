@@ -1,5 +1,7 @@
 #include "volcano.hpp"
 
+#include <vulkan/vulkan_symbol_wrapper.h>
+
 #include <cstdio>
 
 #define MAX_SYNC 3
@@ -66,6 +68,10 @@ void init_swapchain() {
 
 void volcano_init(retro_hw_render_interface_vulkan* vulkan) {
   fprintf(stderr, "volcano_init(): Initialization begun!\n");
+
+  vulkan_symbol_wrapper_init(vulkan->get_instance_proc_addr);
+  vulkan_symbol_wrapper_load_core_instance_symbols(vulkan->instance);
+  vulkan_symbol_wrapper_load_core_device_symbols(vulkan->device);
 
   vkGetPhysicalDeviceProperties(vulkan->gpu, &vk.gpu_properties);
   vkGetPhysicalDeviceMemoryProperties(vulkan->gpu, &vk.memory_properties);
