@@ -1,6 +1,8 @@
 #include <libretro_vulkan.h>
 #include <vulkan/vulkan_symbol_wrapper.h>
 
+#include <cstdio>
+
 #define WIDTH 1280
 #define HEIGHT 720
 
@@ -65,8 +67,15 @@ RETRO_API void retro_get_system_info(retro_system_info* info) {
 static retro_hw_render_interface_vulkan* vulkan;
 
 RETRO_CALLCONV void retro_context_reset() {
-  if(!env_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void**)&vulkan) || !vulkan)
+  if(!env_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void**)&vulkan) || !vulkan) {
+    fprintf(stderr, "Could not fetch HW-render interface from frontend!");
     return;
+  }
+
+  fprintf(
+    stderr, "Successfully fetched HW-interface: vulkan:\n\tinterface_version: %d\n\thandle: %p\n",
+    vulkan->interface_version, vulkan->handle
+  );
 
   vulkan_symbol_wrapper_init(vulkan->get_instance_proc_addr);
   vulkan_symbol_wrapper_load_core_instance_symbols(vulkan->instance);
