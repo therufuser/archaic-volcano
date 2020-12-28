@@ -154,6 +154,8 @@ RETRO_API size_t retro_get_memory_size(unsigned id) {
 }
 
 RETRO_API void retro_run(void) {
+  volcano_render();
+
   video_cb(RETRO_HW_FRAME_BUFFER_VALID, WIDTH, HEIGHT, 0);
 }
 

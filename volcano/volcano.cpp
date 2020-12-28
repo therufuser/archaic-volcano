@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cmath>
 
 #define MAX_SYNC 4
 
@@ -411,4 +412,126 @@ void volcano_init(retro_hw_render_interface_vulkan* vulkan) {
   init_render_pass(VK_FORMAT_R8G8B8A8_UNORM);
   init_pipeline();
   init_swapchain();
+}
+
+void update_ubo(void)
+{
+  static unsigned frame;
+  float c = cosf(frame * 0.01f);
+  float s = sinf(frame * 0.01f);
+  frame++;
+
+  float tmp[16] = {0.0f};
+  tmp[ 0] = c;
+  tmp[ 1] = s;
+  tmp[ 4] = -s;
+  tmp[ 5] = c;
+  tmp[10] = 1.0f;
+  tmp[15] = 1.0f;
+
+  float *mvp = NULL;
+  vkMapMemory(vulkan_if->device, vk.ubo[vk.index].memory,
+    0, 16 * sizeof(float), 0, (void**)&mvp);
+  memcpy(mvp, tmp, sizeof(tmp));
+  vkUnmapMemory(vulkan_if->device, vk.ubo[vk.index].memory);
+}
+
+void volcano_render() {
+  vulkan_if->wait_sync_index(vulkan_if->handle);
+  vk.index = vulkan_if->get_sync_index(vulkan_if->handle);
+
+  update_ubo();
+
+  VkCommandBuffer cmd = vk.cmd[vk.index];
+
+  VkCommandBufferBeginInfo begin_info = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+  begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  vkResetCommandBuffer(cmd, 0);
+  vkBeginCommandBuffer(cmd, &begin_info);
+
+  VkImageMemoryBarrier prepare_rendering = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+  prepare_rendering.srcAccessMask = 0;
+  prepare_rendering.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+  prepare_rendering.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  prepare_rendering.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  prepare_rendering.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  prepare_rendering.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  prepare_rendering.image = vk.images[vk.index].create_info.image;
+  prepare_rendering.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  prepare_rendering.subresourceRange.levelCount = 1;
+  prepare_rendering.subresourceRange.layerCount = 1;
+  vkCmdPipelineBarrier(cmd,
+    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    false, 
+    0, NULL,
+    0, NULL,
+    1, &prepare_rendering
+  );
+
+  VkClearValue clear_value;
+  clear_value.color.float32[0] = 0.8f;
+  clear_value.color.float32[1] = 0.6f;
+  clear_value.color.float32[2] = 0.2f;
+  clear_value.color.float32[3] = 1.0f;
+
+  VkRenderPassBeginInfo rp_begin = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+  rp_begin.renderPass = vk.render_pass;
+  rp_begin.framebuffer = vk.framebuffers[vk.index];
+  rp_begin.renderArea.extent.width = 1280;
+  rp_begin.renderArea.extent.height = 720;
+  rp_begin.clearValueCount = 1;
+  rp_begin.pClearValues = &clear_value;
+  vkCmdBeginRenderPass(cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
+
+  vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline);
+  vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+    vk.pipeline_layout, 0,
+    1, &vk.desc_set[vk.index], 0, NULL);
+
+  VkViewport vp = { 0 };
+  vp.x = 0.0f;
+  vp.y = 0.0f;
+  vp.width = 1280;
+  vp.height = 720;
+  vp.minDepth = 0.0f;
+  vp.maxDepth = 1.0f;
+  vkCmdSetViewport(cmd, 0, 1, &vp);
+
+  VkRect2D scissor;
+  memset(&scissor, 0, sizeof(scissor));
+  scissor.extent.width = 1280;
+  scissor.extent.height = 720;
+  vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+  VkDeviceSize offset = 0;
+  vkCmdBindVertexBuffers(cmd, 0, 1, &vk.vbo.buffer, &offset);
+
+  vkCmdDraw(cmd, 3, 1, 0, 0);
+
+  vkCmdEndRenderPass(cmd);
+
+  VkImageMemoryBarrier prepare_presentation = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+  prepare_presentation.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  prepare_presentation.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  prepare_presentation.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  prepare_presentation.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+  prepare_presentation.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  prepare_presentation.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  prepare_presentation.image = vk.images[vk.index].create_info.image;
+  prepare_presentation.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  prepare_presentation.subresourceRange.levelCount = 1;
+  prepare_presentation.subresourceRange.layerCount = 1;
+  vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+    false,
+    0, NULL,
+    0, NULL,
+    1, &prepare_presentation
+  );
+
+  vkEndCommandBuffer(cmd);
+
+  vulkan_if->set_image(vulkan_if->handle, &vk.images[vk.index], 0, NULL, VK_QUEUE_FAMILY_IGNORED);
+  vulkan_if->set_command_buffers(vulkan_if->handle, 1, &vk.cmd[vk.index]);
 }
