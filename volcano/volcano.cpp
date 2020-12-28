@@ -106,7 +106,19 @@ void init_vertex_buffer() {
 }
 
 void init_command() {
+  VkCommandPoolCreateInfo pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+  VkCommandBufferAllocateInfo info = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 
+  pool_info.queueFamilyIndex = vulkan_if->queue_index;
+  pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+  for (unsigned i = 0; i < vk.num_swapchain_images; i++) {
+    vkCreateCommandPool(vulkan_if->device, &pool_info, NULL, &vk.cmd_pool[i]);
+    info.commandPool = vk.cmd_pool[i];
+    info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    info.commandBufferCount = 1;
+    vkAllocateCommandBuffers(vulkan_if->device, &info, &vk.cmd[i]);
+  }
 }
 
 void init_descriptor() {
