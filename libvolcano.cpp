@@ -7,11 +7,9 @@
 #define WIDTH 1280
 #define HEIGHT 720
 
-volcano::renderer renderer;
-
-RETRO_API unsigned int retro_api_version () {
-  return RETRO_API_VERSION;
-}
+static const char* library_name = "Archaic Volcano";
+static const char* library_version = "v0.0.1";
+static const char* valid_extensions = "";
 
 static retro_environment_t env_cb;
 static retro_video_refresh_t video_cb;
@@ -19,6 +17,22 @@ static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
+
+static retro_hw_render_interface_vulkan* vulkan;
+volcano::renderer renderer;
+
+// Core basics
+RETRO_API unsigned int retro_api_version () {
+  return RETRO_API_VERSION;
+}
+
+RETRO_API void retro_get_system_info(retro_system_info* info) {
+  info->library_name     = library_name;
+  info->library_version  = library_version;
+  info->valid_extensions = valid_extensions;
+  info->need_fullpath    = false;
+  info->block_extract    = false;
+}
 
 RETRO_API void retro_set_environment(retro_environment_t cb) {
   env_cb = cb;
@@ -28,6 +42,10 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
 }
 
 RETRO_API void retro_init() {
+
+}
+
+RETRO_API void retro_deinit() {
 
 }
 
@@ -55,20 +73,7 @@ RETRO_API void retro_set_controller_port_device(unsigned port, unsigned device) 
 
 }
 
-static const char* library_name = "Archaic Volcano";
-static const char* library_version = "v0.0.1";
-static const char* valid_extensions = "";
-
-RETRO_API void retro_get_system_info(retro_system_info* info) {
-  info->library_name     = library_name;
-  info->library_version  = library_version;
-  info->valid_extensions = valid_extensions;
-  info->need_fullpath    = false;
-  info->block_extract    = false;
-}
-
-static retro_hw_render_interface_vulkan* vulkan;
-
+// Core runtime stuff
 RETRO_CALLCONV void retro_context_reset() {
   if(!env_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void**)&vulkan) || !vulkan) {
     fprintf(stderr, "Could not fetch HW-render interface from frontend!");
@@ -131,8 +136,14 @@ RETRO_API void retro_get_system_av_info(retro_system_av_info *info) {
   };
 }
 
-RETRO_API size_t retro_serialize_size(void) {
-  return 0;
+RETRO_API unsigned retro_get_region(void) {
+  return RETRO_REGION_PAL;
+}
+
+RETRO_API void retro_run(void) {
+  renderer.render();
+
+  video_cb(RETRO_HW_FRAME_BUFFER_VALID, WIDTH, HEIGHT, 0);
 }
 
 RETRO_API void retro_reset(void) {
@@ -143,22 +154,18 @@ RETRO_API void retro_unload_game(void) {
 
 }
 
-RETRO_API unsigned retro_get_region(void) {
-  return RETRO_REGION_PAL;
+// Memory extraction
+RETRO_API size_t retro_get_memory_size(unsigned id) {
+  return 0;
 }
 
 RETRO_API void* retro_get_memory_data(unsigned id) {
   return nullptr;
 }
 
-RETRO_API size_t retro_get_memory_size(unsigned id) {
+// Serialization
+RETRO_API size_t retro_serialize_size(void) {
   return 0;
-}
-
-RETRO_API void retro_run(void) {
-  renderer.render();
-
-  video_cb(RETRO_HW_FRAME_BUFFER_VALID, WIDTH, HEIGHT, 0);
 }
 
 RETRO_API bool retro_serialize(void *data, size_t size) {
@@ -169,6 +176,7 @@ RETRO_API bool retro_unserialize(const void *data, size_t size) {
   return false;
 }
 
+// Cheat related
 RETRO_API void retro_cheat_reset(void) {
 	
 }
@@ -177,6 +185,3 @@ RETRO_API void retro_cheat_set(unsigned index, bool enabled, const char *code) {
 
 }
 
-RETRO_API void retro_deinit() {
-
-}
