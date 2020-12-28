@@ -122,7 +122,58 @@ void init_command() {
 }
 
 void init_descriptor() {
+  VkDevice device = vulkan_if->device;
 
+  VkDescriptorSetLayoutBinding binding = {0};
+  binding.binding = 0;
+  binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  binding.descriptorCount = 1;
+  binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  binding.pImmutableSamplers = NULL;
+
+  const VkDescriptorPoolSize pool_sizes[1] = {
+    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, vk.num_swapchain_images },
+  };
+
+  VkDescriptorSetLayoutCreateInfo set_layout_info = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+  set_layout_info.bindingCount = 1;
+  set_layout_info.pBindings = &binding;
+  vkCreateDescriptorSetLayout(device, &set_layout_info, NULL, &vk.set_layout);
+
+  VkPipelineLayoutCreateInfo layout_info = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+  layout_info.setLayoutCount = 1;
+  layout_info.pSetLayouts = &vk.set_layout;
+  vkCreatePipelineLayout(device, &layout_info, NULL, &vk.pipeline_layout);
+
+  VkDescriptorPoolCreateInfo pool_info = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+  pool_info.maxSets = vk.num_swapchain_images;
+  pool_info.poolSizeCount = 1;
+  pool_info.pPoolSizes = pool_sizes;
+  pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+  vkCreateDescriptorPool(device, &pool_info, NULL, &vk.desc_pool);
+
+  VkDescriptorSetAllocateInfo alloc_info = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+  alloc_info.descriptorPool = vk.desc_pool;
+  alloc_info.descriptorSetCount = 1;
+  alloc_info.pSetLayouts = &vk.set_layout;
+  for (unsigned i = 0; i < vk.num_swapchain_images; i++) {
+    vkAllocateDescriptorSets(device, &alloc_info, &vk.desc_set[i]);
+
+    VkWriteDescriptorSet write = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+    VkDescriptorBufferInfo buffer_info;
+
+    write.dstSet = vk.desc_set[i];
+    write.dstBinding = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write.pBufferInfo = &buffer_info;
+
+    buffer_info.buffer = vk.ubo[i].buffer;
+    buffer_info.offset = 0;
+    buffer_info.range = 16 * sizeof(float);
+
+    vkUpdateDescriptorSets(device, 1, &write, 0, NULL);
+  }
 }
 
 void init_render_pass(VkFormat format) {
