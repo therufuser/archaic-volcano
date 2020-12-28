@@ -3,6 +3,7 @@
 #include <vulkan/vulkan_symbol_wrapper.h>
 
 #include <cstdio>
+#include <cstring>
 
 #define MAX_SYNC 3
 
@@ -11,6 +12,7 @@ struct buffer {
   VkDeviceMemory memory;
 };
 
+retro_hw_render_interface_vulkan* vulkan_if;
 struct vulkan_data {
   unsigned index;
   unsigned num_swapchain_images;
@@ -38,12 +40,69 @@ struct vulkan_data {
 };
 static struct vulkan_data vk;
 
+static uint32_t find_memory_type_from_requirements(uint32_t device_requirements, uint32_t host_requirements)
+{
+  const VkPhysicalDeviceMemoryProperties *props = &vk.memory_properties;
+  for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
+    if (device_requirements & (1u << i)) {
+      if ((props->memoryTypes[i].propertyFlags & host_requirements) == host_requirements) {
+        return i;
+      }
+    }
+  }
+
+  return 0;
+}
+
+static struct buffer create_buffer(const void *initial, size_t size, VkBufferUsageFlags usage) {
+  struct buffer buffer;
+  VkDevice device = vulkan_if->device;
+
+  VkBufferCreateInfo info = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+  info.usage = usage;
+  info.size = size;
+
+  vkCreateBuffer(device, &info, NULL, &buffer.buffer);
+
+  VkMemoryRequirements mem_reqs;
+  vkGetBufferMemoryRequirements(device, buffer.buffer, &mem_reqs);
+
+  VkMemoryAllocateInfo alloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+  alloc.allocationSize = mem_reqs.size;
+
+  alloc.memoryTypeIndex = find_memory_type_from_requirements(mem_reqs.memoryTypeBits,
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+  );
+
+  vkAllocateMemory(device, &alloc, NULL, &buffer.memory);
+  vkBindBufferMemory(device, buffer.buffer, buffer.memory, 0);
+
+  if (initial) {
+    void *ptr;
+    vkMapMemory(device, buffer.memory, 0, size, 0, &ptr);
+    memcpy(ptr, initial, size);
+    vkUnmapMemory(device, buffer.memory);
+  }
+
+  return buffer;
+}
+
 void init_uniform_buffer() {
- 
+  for(unsigned i = 0; i < vk.num_swapchain_images; i++) {
+    vk.ubo[i] = create_buffer(nullptr, 16 * sizeof(float),
+      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+  }
 }
 
 void init_vertex_buffer() {
+  // Create a simple colored triangle
+  static const float data[] = {
+    -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // vec4 position, vec4 color
+    -0.5f, +0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+    +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+  };
 
+  vk.vbo = create_buffer(data, sizeof(data), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 }
 
 void init_command() {
@@ -67,6 +126,7 @@ void init_swapchain() {
 }
 
 void volcano_init(retro_hw_render_interface_vulkan* vulkan) {
+  vulkan_if = vulkan;
   fprintf(stderr, "volcano_init(): Initialization begun!\n");
 
   vulkan_symbol_wrapper_init(vulkan->get_instance_proc_addr);
