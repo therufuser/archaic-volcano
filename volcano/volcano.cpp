@@ -177,7 +177,29 @@ void init_descriptor() {
 }
 
 void init_render_pass(VkFormat format) {
+  VkAttachmentDescription attachment = { 0 };
+  attachment.format = format;
+  attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+  attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+  attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+  attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
+  attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+  VkAttachmentReference color_ref = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+  VkSubpassDescription subpass = { 0 };
+  subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  subpass.colorAttachmentCount = 1;
+  subpass.pColorAttachments = &color_ref;
+
+  VkRenderPassCreateInfo rp_info = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+  rp_info.attachmentCount = 1;
+  rp_info.pAttachments = &attachment;
+  rp_info.subpassCount = 1;
+  rp_info.pSubpasses = &subpass;
+  vkCreateRenderPass(vulkan_if->device, &rp_info, NULL, &vk.render_pass);
 }
 
 void init_pipeline() {
