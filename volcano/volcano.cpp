@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstring>
 
-#define MAX_SYNC 3
+#define MAX_SYNC 4
 
 struct buffer {
   VkBuffer buffer;
@@ -318,7 +318,67 @@ void init_pipeline() {
 }
 
 void init_swapchain() {
+  VkDevice device = vulkan_if->device;
 
+  for (unsigned i = 0; i < vk.num_swapchain_images; i++) {
+    VkImageCreateInfo image = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+
+    image.imageType = VK_IMAGE_TYPE_2D;
+    image.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+    image.format = VK_FORMAT_R8G8B8A8_UNORM;
+    image.extent.width = 1280;
+    image.extent.height = 720;
+    image.extent.depth = 1;
+    image.samples = VK_SAMPLE_COUNT_1_BIT;
+    image.tiling = VK_IMAGE_TILING_OPTIMAL;
+    image.usage =
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+      VK_IMAGE_USAGE_SAMPLED_BIT |
+      VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    image.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    image.mipLevels = 1;
+    image.arrayLayers = 1;
+
+    vkCreateImage(device, &image, NULL, &vk.images[i].create_info.image);
+
+    VkMemoryAllocateInfo alloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+    VkMemoryRequirements mem_reqs;
+
+    vkGetImageMemoryRequirements(device, vk.images[i].create_info.image, &mem_reqs);
+    alloc.allocationSize = mem_reqs.size;
+    alloc.memoryTypeIndex = find_memory_type_from_requirements(
+      mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    vkAllocateMemory(device, &alloc, NULL, &vk.image_memory[i]);
+    vkBindImageMemory(device, vk.images[i].create_info.image, vk.image_memory[i], 0);
+
+    vk.images[i].create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    vk.images[i].create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    vk.images[i].create_info.format = VK_FORMAT_R8G8B8A8_UNORM;
+    vk.images[i].create_info.subresourceRange.baseMipLevel = 0;
+    vk.images[i].create_info.subresourceRange.baseArrayLayer = 0;
+    vk.images[i].create_info.subresourceRange.levelCount = 1;
+    vk.images[i].create_info.subresourceRange.layerCount = 1;
+    vk.images[i].create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    vk.images[i].create_info.components.r = VK_COMPONENT_SWIZZLE_R;
+    vk.images[i].create_info.components.g = VK_COMPONENT_SWIZZLE_G;
+    vk.images[i].create_info.components.b = VK_COMPONENT_SWIZZLE_B;
+    vk.images[i].create_info.components.a = VK_COMPONENT_SWIZZLE_A;
+
+    vkCreateImageView(device, &vk.images[i].create_info,
+      NULL, &vk.images[i].image_view);
+    vk.images[i].image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    VkFramebufferCreateInfo fb_info = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+    fb_info.renderPass = vk.render_pass;
+    fb_info.attachmentCount = 1;
+    fb_info.pAttachments = &vk.images[i].image_view;
+    fb_info.width = 1280;
+    fb_info.height = 720;
+    fb_info.layers = 1;
+
+    vkCreateFramebuffer(device, &fb_info, NULL, &vk.framebuffers[i]);
+  }
 }
 
 void volcano_init(retro_hw_render_interface_vulkan* vulkan) {
