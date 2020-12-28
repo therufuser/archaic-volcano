@@ -7,6 +7,8 @@
 #include <cmath>
 
 #define MAX_SYNC 4
+#define WIDTH 1280
+#define HEIGHT 720
 
 struct buffer {
   VkBuffer buffer;
@@ -327,8 +329,8 @@ void init_swapchain() {
     image.imageType = VK_IMAGE_TYPE_2D;
     image.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
     image.format = VK_FORMAT_R8G8B8A8_UNORM;
-    image.extent.width = 1280;
-    image.extent.height = 720;
+    image.extent.width = WIDTH;
+    image.extent.height = HEIGHT;
     image.extent.depth = 1;
     image.samples = VK_SAMPLE_COUNT_1_BIT;
     image.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -374,8 +376,8 @@ void init_swapchain() {
     fb_info.renderPass = vk.render_pass;
     fb_info.attachmentCount = 1;
     fb_info.pAttachments = &vk.images[i].image_view;
-    fb_info.width = 1280;
-    fb_info.height = 720;
+    fb_info.width = WIDTH;
+    fb_info.height = HEIGHT;
     fb_info.layers = 1;
 
     vkCreateFramebuffer(device, &fb_info, NULL, &vk.framebuffers[i]);
@@ -477,8 +479,8 @@ void volcano_render() {
   VkRenderPassBeginInfo rp_begin = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
   rp_begin.renderPass = vk.render_pass;
   rp_begin.framebuffer = vk.framebuffers[vk.index];
-  rp_begin.renderArea.extent.width = 1280;
-  rp_begin.renderArea.extent.height = 720;
+  rp_begin.renderArea.extent.width = WIDTH;
+  rp_begin.renderArea.extent.height = HEIGHT;
   rp_begin.clearValueCount = 1;
   rp_begin.pClearValues = &clear_value;
   vkCmdBeginRenderPass(cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
@@ -491,16 +493,16 @@ void volcano_render() {
   VkViewport vp = { 0 };
   vp.x = 0.0f;
   vp.y = 0.0f;
-  vp.width = 1280;
-  vp.height = 720;
+  vp.width = WIDTH;
+  vp.height = HEIGHT;
   vp.minDepth = 0.0f;
   vp.maxDepth = 1.0f;
   vkCmdSetViewport(cmd, 0, 1, &vp);
 
   VkRect2D scissor;
   memset(&scissor, 0, sizeof(scissor));
-  scissor.extent.width = 1280;
-  scissor.extent.height = 720;
+  scissor.extent.width = WIDTH;
+  scissor.extent.height = HEIGHT;
   vkCmdSetScissor(cmd, 0, 1, &scissor);
 
   VkDeviceSize offset = 0;
