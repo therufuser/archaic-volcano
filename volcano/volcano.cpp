@@ -6,42 +6,8 @@
 #include <cstring>
 #include <cmath>
 
-#define MAX_SYNC 4
-#define WIDTH 1280
-#define HEIGHT 720
-
-struct buffer {
-  VkBuffer buffer;
-  VkDeviceMemory memory;
-};
-
-retro_hw_render_interface_vulkan* vulkan_if;
-struct vulkan_data {
-  unsigned index;
-  unsigned num_swapchain_images;
-  uint32_t swapchain_mask;
-  struct buffer vbo;
-  struct buffer ubo[MAX_SYNC];
-
-  VkPhysicalDeviceMemoryProperties memory_properties;
-  VkPhysicalDeviceProperties gpu_properties;
-
-  VkDescriptorSetLayout set_layout;
-  VkDescriptorPool desc_pool;
-  VkDescriptorSet desc_set[MAX_SYNC];
-
-  VkPipelineCache pipeline_cache;
-  VkPipelineLayout pipeline_layout;
-  VkRenderPass render_pass;
-  VkPipeline pipeline;
-
-  struct retro_vulkan_image images[MAX_SYNC];
-  VkDeviceMemory image_memory[MAX_SYNC];
-  VkFramebuffer framebuffers[MAX_SYNC];
-  VkCommandPool cmd_pool[MAX_SYNC];
-  VkCommandBuffer cmd[MAX_SYNC];
-};
-static struct vulkan_data vk;
+namespace volcano {
+  retro_hw_render_interface_vulkan* vulkan_if;
 
 static uint32_t find_memory_type_from_requirements(uint32_t device_requirements, uint32_t host_requirements)
 {
@@ -384,7 +350,7 @@ void init_swapchain() {
   }
 }
 
-void volcano_init(retro_hw_render_interface_vulkan* vulkan) {
+void init(retro_hw_render_interface_vulkan* vulkan) {
   vulkan_if = vulkan;
   fprintf(stderr, "volcano_init(): Initialization begun!\n");
 
@@ -438,7 +404,7 @@ void update_ubo(void)
   vkUnmapMemory(vulkan_if->device, vk.ubo[vk.index].memory);
 }
 
-void volcano_render() {
+void render() {
   vulkan_if->wait_sync_index(vulkan_if->handle);
   vk.index = vulkan_if->get_sync_index(vulkan_if->handle);
 
@@ -536,4 +502,5 @@ void volcano_render() {
 
   vulkan_if->set_image(vulkan_if->handle, &vk.images[vk.index], 0, NULL, VK_QUEUE_FAMILY_IGNORED);
   vulkan_if->set_command_buffers(vulkan_if->handle, 1, &vk.cmd[vk.index]);
+}
 }

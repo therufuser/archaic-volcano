@@ -78,7 +78,7 @@ RETRO_CALLCONV void retro_context_reset() {
     vulkan->interface_version, vulkan->handle
   );
 
-  volcano_init(vulkan);
+  volcano::init(vulkan);
 }
   
 RETRO_API bool retro_load_game(const struct retro_game_info* game) {
@@ -154,7 +154,7 @@ RETRO_API size_t retro_get_memory_size(unsigned id) {
 }
 
 RETRO_API void retro_run(void) {
-  volcano_render();
+  volcano::render();
 
   video_cb(RETRO_HW_FRAME_BUFFER_VALID, WIDTH, HEIGHT, 0);
 }
