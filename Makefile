@@ -1,4 +1,5 @@
 LIBRETRO_INC=libretro-common/include
+LOGURU_INC=loguru
 
 BUILD_DIR=build
 
@@ -10,15 +11,21 @@ run: all
 $(LIBRETRO_INC) libretro-common/vulkan/vulkan_symbol_wrapper.c:
 	git submodule update
 
+$(LOGURU_INC) loguru/loguru.hpp:
+	git submodule update
+
 %/:
 	mkdir -p $@
 
 .SECONDEXPANSION:
-$(BUILD_DIR)/%.o: %.cpp $(LIBRETRO_INC) | $$(@D)/
-	g++ -c $< -I$(LIBRETRO_INC) -o $@ -fPIC
+$(BUILD_DIR)/%.o: %.cpp $(LIBRETRO_INC) $(LOGURU_INC) | $$(@D)/
+	g++ -c $< -I$(LIBRETRO_INC) -I$(LOGURU_INC) -o $@ -fPIC
 
 $(BUILD_DIR)/vulkan_symbol_wrapper.o: libretro-common/vulkan/vulkan_symbol_wrapper.c $(LIBRETRO_INC) | $(BUILD_DIR)/
 	gcc -c $< -o $@ -I$(LIBRETRO_INC) -fPIC
 
-libretro_volcano.so: $(BUILD_DIR)/libvolcano.o $(BUILD_DIR)/vulkan_symbol_wrapper.o $(BUILD_DIR)/volcano/volcano.o
+$(BUILD_DIR)/loguru.o: $(LOGURU_INC)/loguru.cpp $(LOGURU_INC) | $(BUILD_DIR)/
+	gcc -c $< -o $@ -I$(LOGURU_INC) -fPIC
+
+libretro_volcano.so: $(BUILD_DIR)/loguru.o $(BUILD_DIR)/libvolcano.o $(BUILD_DIR)/vulkan_symbol_wrapper.o $(BUILD_DIR)/volcano/volcano.o $(BUILD_DIR)/volcano/renderer/mesh.o
 	g++ -o $@ $^ -shared

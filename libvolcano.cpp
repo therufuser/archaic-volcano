@@ -1,5 +1,7 @@
 #include <libretro_vulkan.h>
 
+#include <loguru.hpp>
+
 #include <cstdio>
 
 #include "volcano/volcano.hpp"
@@ -43,7 +45,9 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
 }
 
 RETRO_API void retro_init() {
-
+  loguru::add_file("logs/volcano_debug.log", loguru::Append, loguru::Verbosity_MAX);
+  loguru::g_stderr_verbosity = 1;
+  LOG_F(INFO, "Logger initialized!");
 }
 
 RETRO_API void retro_deinit() {

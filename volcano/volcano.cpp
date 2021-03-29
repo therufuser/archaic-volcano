@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan_symbol_wrapper.h>
 
+#include <loguru.hpp>
+
 #include <cstdio>
 #include <cstring>
 #include <cmath>
@@ -591,6 +593,7 @@ namespace volcano {
   }
 
   void renderer::add_mesh(const float* vertices, int size) {
+    LOG_F(MAX, "Add new mesh (size=%d)", size);
     meshes.push_back(mesh(this, vertices, size));
   }
 }
