@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include "volcano/volcano.hpp"
+#include "volcano/renderer/mesh.hpp"
 
 #define WIDTH 1280
 #define HEIGHT 720
@@ -86,6 +87,15 @@ RETRO_CALLCONV void retro_context_reset() {
   );
 
   renderer.init(vulkan);
+
+  // Create a simple colored triangle
+  static const float data[] = {
+    -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // vec4 position, vec4 color
+    -0.5f, +0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+    +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+  };
+  renderer.add_mesh(data, sizeof(data) / sizeof(float));
+
 }
   
 RETRO_API bool retro_load_game(const struct retro_game_info* game) {

@@ -1,6 +1,8 @@
 #ifndef VOLCANO_HPP
   #define VOLCANO_HPP
 
+#include <vector>
+
 #include <libretro_vulkan.h>
 
 #define MAX_SYNC 4
@@ -18,7 +20,6 @@ namespace volcano {
       unsigned index;
       unsigned num_swapchain_images;
       uint32_t swapchain_mask;
-      struct buffer vbo;
       struct buffer ubo[MAX_SYNC];
 
       VkPhysicalDeviceMemoryProperties memory_properties;
@@ -42,7 +43,6 @@ namespace volcano {
       uint32_t find_memory_type_from_requirements(uint32_t device_requirements, uint32_t host_requirements);
       struct buffer create_buffer(const void *initial, size_t size, VkBufferUsageFlags usage);
       void init_uniform_buffer();
-      void init_vertex_buffer();
       void init_command();
       void init_descriptor();
       void init_render_pass(VkFormat format);
@@ -51,9 +51,14 @@ namespace volcano {
       void init_swapchain();
       void update_ubo();
 
+      class mesh;
+      std::vector<mesh> meshes;
+
    public:
       void init(retro_hw_render_interface_vulkan*);
       void render();
+
+      void add_mesh(const float* vertices, int size);
   };
 }
 
