@@ -4,8 +4,10 @@
 
 #include <cmath>
 #include <cstdio>
+#include <vector>
 
 #include "volcano/volcano.hpp"
+#include "volcano/graphics/vertex.hpp"
 #include "volcano/renderer/mesh.hpp"
 
 #define WIDTH 1280
@@ -99,8 +101,243 @@ RETRO_CALLCONV void retro_context_reset() {
     -0.5f, +0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
     +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
   };
-  renderer.add_mesh(data, sizeof(data) / sizeof(float));
+//  renderer.add_mesh(data, sizeof(data) / sizeof(float));
 
+  // Some other mesh
+  const float circle_radius = 0.75f;
+  const int circle_segments = 64;
+  std::vector<volcano::graphics::vertex> circle_data;
+  for(int i = 0; i < circle_segments; i++) {
+    // Center vertex
+    circle_data.push_back({
+      .x = 0.0f,
+      .y = 0.0f,
+      .z = 0.0f,
+      .w = 1.0f,
+
+      .r = 0.5f,
+      .g = 0.0f,
+      .b = 0.0f,
+      .a = 1.0f
+    });
+
+    // Diameter vertices (first)
+    circle_data.push_back({
+      .x = sin(i * 2 * M_PI / circle_segments) * circle_radius,
+      .y = cos(i * 2 * M_PI / circle_segments) * circle_radius,
+      .z = 0.03f * (i - (circle_segments >> 1)),
+      .w = 1.0f,
+
+      .r = 0.5f,
+      .g = 0.0f,
+      .b = 0.1f * i,
+      .a = 1.0f
+    });
+
+    // Position data (second)
+    circle_data.push_back({
+      .x = sin((i + 1) * 2 * M_PI / circle_segments) * circle_radius,
+      .y = cos((i + 1) * 2 * M_PI / circle_segments) * circle_radius,
+      .z = 0.03f * (i + 1 - (circle_segments >> 1)),
+      .w = 1.0f,
+
+      .r = 0.5f,
+      .g = 0.0f,
+      .b = 0.1f * (i + 1),
+      .a = 1.0f
+    });
+  }
+//  renderer.add_mesh(circle_data);
+
+  const float cube_length = 0.75f;
+  std::vector<volcano::graphics::vertex> cube_data;
+  // Back face
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = -1.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = -1.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = -1.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = -1.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = -1.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = -1.0f
+  });
+  // Front face
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
+  });
+  // Left face
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  // Right face
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = 1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = 1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = 1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = 1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = 1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = 1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  // Top face
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
+  });
+  // Bottom face
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = -1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = -1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = -1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = -1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = -1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 0.5f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = -1.0f, .n_z = 0.0f
+  });
+  renderer.add_mesh(cube_data);
 }
   
 RETRO_API bool retro_load_game(const struct retro_game_info* game) {
