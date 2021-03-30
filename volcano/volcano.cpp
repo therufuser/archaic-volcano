@@ -208,7 +208,7 @@ namespace volcano {
       .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
     };
 
-    VkVertexInputAttributeDescription attributes[2] = {
+    VkVertexInputAttributeDescription attributes[3] = {
       {
         .location = 0,
         .binding  = 0,
@@ -219,12 +219,17 @@ namespace volcano {
         .binding  = 0,
         .format   = VK_FORMAT_R32G32B32A32_SFLOAT,
         .offset   = 4 * sizeof(float),
+      }, {
+        .location = 2,
+        .binding  = 0,
+        .format   = VK_FORMAT_R32G32B32_SFLOAT,
+        .offset   = 8 * sizeof(float),
       },
     };
 
     VkVertexInputBindingDescription binding = {
       .binding   = 0,
-      .stride    = sizeof(float) * 8,
+      .stride    = sizeof(volcano::graphics::vertex),
       .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
     };
 
@@ -232,7 +237,7 @@ namespace volcano {
       .sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
       .vertexBindingDescriptionCount   = 1,
       .pVertexBindingDescriptions      = &binding,
-      .vertexAttributeDescriptionCount = 2,
+      .vertexAttributeDescriptionCount = 3,
       .pVertexAttributeDescriptions    = attributes,
     };
 
@@ -557,7 +562,8 @@ namespace volcano {
 
     for(mesh& cur_mesh: meshes) {
       vkCmdBindVertexBuffers(cmd, 0, 1, cur_mesh.get_buffer(), &offset);
-      vkCmdDraw(cmd, 3, 1, 0, 0);
+      vkCmdDraw(cmd, cur_mesh.get_size(), 1, 0, 0);
+      LOG_F(MAX, "Added draw-call for buffer %d with %d vertices", cur_mesh.get_buffer(), cur_mesh.get_size());
     }
 
     vkCmdEndRenderPass(cmd);
@@ -592,8 +598,8 @@ namespace volcano {
     vulkan_if->set_command_buffers(vulkan_if->handle, 1, &this->cmd[this->index]);
   }
 
-  void renderer::add_mesh(const float* vertices, int size) {
-    LOG_F(MAX, "Add new mesh (size=%d)", size);
-    meshes.push_back(mesh(this, vertices, size));
+  void renderer::add_mesh(std::vector<graphics::vertex>& vertices) {
+    LOG_F(MAX, "Add new mesh (size=%d)", vertices.size());
+    meshes.push_back(mesh(this, vertices.data(), vertices.size()));
   }
 }

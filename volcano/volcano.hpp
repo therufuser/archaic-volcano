@@ -5,6 +5,8 @@
 
 #include <libretro_vulkan.h>
 
+#include "graphics/vertex.hpp"
+
 #define MAX_SYNC 4
 #define WIDTH 1280
 #define HEIGHT 720
@@ -58,7 +60,7 @@ namespace volcano {
       void init(retro_hw_render_interface_vulkan*);
       void render();
 
-      void add_mesh(const float* vertices, int size);
+      void add_mesh(std::vector<graphics::vertex>& vertices);
   };
 }
 
