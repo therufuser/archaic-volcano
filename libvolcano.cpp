@@ -2,6 +2,7 @@
 
 #include <loguru.hpp>
 
+#include <cmath>
 #include <cstdio>
 
 #include "volcano/volcano.hpp"

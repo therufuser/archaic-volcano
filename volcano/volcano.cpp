@@ -5,6 +5,10 @@
 
 #include <loguru.hpp>
 
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/ext/matrix_transform.hpp>
+
 #include <cstdio>
 #include <cstring>
 #include <cmath>
@@ -447,28 +451,21 @@ namespace volcano {
     init_swapchain();
   }
 
-  void renderer::update_ubo(void)
-  {
+  void renderer::update_ubo(void) {
     static unsigned frame;
-    float c = cosf(frame * 0.01f);
-    float s = sinf(frame * 0.01f);
-    frame++;
 
-    float tmp[16] = {0.0f};
-    tmp[ 0] = c;
-    tmp[ 1] = s;
-    tmp[ 4] = -s;
-    tmp[ 5] = c;
-    tmp[10] = 1.0f;
-    tmp[15] = 1.0f;
+    glm::mat4 view = glm::rotate(glm::mat4(1.0f), frame * 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+    view = glm::rotate(view, glm::pi<float>() / 5, glm::vec3(1.0f, 0.0f, 0.0f));
 
     float *mvp = nullptr;
     vkMapMemory(
       vulkan_if->device, this->ubo[this->index].memory,
       0, 16 * sizeof(float), 0, (void**)&mvp
     );
-    memcpy(mvp, tmp, sizeof(tmp));
+    memcpy(mvp, &view, sizeof(view));
     vkUnmapMemory(vulkan_if->device, this->ubo[this->index].memory);
+
+    frame++;
   }
 
   void renderer::render() {
