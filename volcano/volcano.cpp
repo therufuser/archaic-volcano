@@ -217,17 +217,17 @@ namespace volcano {
         .location = 0,
         .binding  = 0,
         .format   = VK_FORMAT_R32G32B32A32_SFLOAT,
-        .offset   = 0,
+        .offset   = offsetof(graphics::vertex, x),
       }, {
         .location = 1,
         .binding  = 0,
         .format   = VK_FORMAT_R32G32B32A32_SFLOAT,
-        .offset   = 4 * sizeof(float),
+        .offset   = offsetof(graphics::vertex, r),
       }, {
         .location = 2,
         .binding  = 0,
         .format   = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset   = 8 * sizeof(float),
+        .offset   = offsetof(graphics::vertex, n_x),
       },
     };
 
