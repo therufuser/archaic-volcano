@@ -1,6 +1,9 @@
 LIBRETRO_INC=libretro-common/include
 LOGURU_INC=loguru
 
+SHADER_PATH=volcano/shaders
+SHADER_FILES=$(SHADER_PATH)/triangle.vert.inc $(SHADER_PATH)/triangle.frag.inc
+
 BUILD_DIR=build
 
 all: libretro_volcano.so
@@ -17,8 +20,14 @@ $(LOGURU_INC) loguru/loguru.hpp:
 %/:
 	mkdir -p $@
 
+$(SHADER_PATH)/%.frag.inc: $(SHADER_PATH)/%.frag
+	glslc -mfmt=c $< -o $@
+
+$(SHADER_PATH)/%.vert.inc: $(SHADER_PATH)/%.vert
+	glslc -mfmt=c $< -o $@
+
 .SECONDEXPANSION:
-$(BUILD_DIR)/%.o: %.cpp $(LIBRETRO_INC) $(LOGURU_INC) | $$(@D)/
+$(BUILD_DIR)/%.o: %.cpp $(LIBRETRO_INC) $(LOGURU_INC) $(SHADER_FILES) | $$(@D)/
 	g++ -c $< -I$(LIBRETRO_INC) -I$(LOGURU_INC) -o $@ -fPIC
 
 $(BUILD_DIR)/vulkan_symbol_wrapper.o: libretro-common/vulkan/vulkan_symbol_wrapper.c $(LIBRETRO_INC) | $(BUILD_DIR)/
