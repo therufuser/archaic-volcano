@@ -597,15 +597,27 @@ namespace volcano {
       1, &prepare_rendering
     );
 
-    VkClearValue clear_value = {
+    VkClearValue clear_color = {
       .color = {
-	.float32 = {
-	  0.8f,
-	  0.6f,
-	  0.2f,
-	  1.0f,
-	},
+        .float32 = {
+          0.8f,
+          0.6f,
+          0.2f,
+          1.0f,
+        },
       },
+    };
+
+    VkClearValue clear_depth = {
+      .depthStencil = {
+        .depth   = 1.0f,
+        .stencil = 0
+      },
+    };
+
+    std::array<VkClearValue, 2> clear_values = {
+      clear_color,
+      clear_depth
     };
 
     VkRenderPassBeginInfo rp_begin = {
@@ -617,8 +629,8 @@ namespace volcano {
 	{     0,      0 },
 	{ WIDTH, HEIGHT },
       },
-      .clearValueCount   = 1,
-      .pClearValues      = &clear_value,
+      .clearValueCount   = clear_values.size(),
+      .pClearValues      = clear_values.data(),
     };
     vkCmdBeginRenderPass(cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
 
