@@ -74,7 +74,7 @@ namespace volcano {
   void renderer::init_uniform_buffer() {
     for(unsigned i = 0; i < this->num_swapchain_images; i++) {
       this->ubo[i] = create_buffer(
-	nullptr, 16 * sizeof(float),
+	nullptr, 2 * sizeof(glm::mat4),
 	VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
       );
     }
@@ -145,7 +145,7 @@ namespace volcano {
       VkDescriptorBufferInfo buffer_info = {
         .buffer = this->ubo[i].buffer,
         .offset = 0,
-        .range  = 16 * sizeof(float),
+        .range  = 2 * sizeof(glm::mat4),
       };
 
       VkWriteDescriptorSet write = {
@@ -556,14 +556,20 @@ namespace volcano {
     view = glm::rotate(view, frame * 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(5.0f));
 
-    glm::mat4 mvp = projection * view * model;
+    glm::mat4 mv = view * model;
+    glm::mat4 mvp = projection * mv;
+
+    std::array<glm::mat4, 2> ubo_matrices = {
+      mvp,
+      mv
+    };
 
     float *memmap_mvp = nullptr;
     vkMapMemory(
       vulkan_if->device, this->ubo[this->index].memory,
-      0, 16 * sizeof(float), 0, (void**)&memmap_mvp
+      0, ubo_matrices.size() * sizeof(glm::mat4), 0, (void**)&memmap_mvp
     );
-    memcpy(memmap_mvp, &mvp, sizeof(mvp));
+    memcpy(memmap_mvp, ubo_matrices.data(), ubo_matrices.size() * sizeof(glm::mat4));
     vkUnmapMemory(vulkan_if->device, this->ubo[this->index].memory);
 
     frame++;
