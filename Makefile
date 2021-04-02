@@ -36,5 +36,5 @@ $(BUILD_DIR)/vulkan_symbol_wrapper.o: libretro-common/vulkan/vulkan_symbol_wrapp
 $(BUILD_DIR)/loguru.o: $(LOGURU_INC)/loguru.cpp $(LOGURU_INC) | $(BUILD_DIR)/
 	gcc -c $< -o $@ -I$(LOGURU_INC) -fPIC
 
-libretro_volcano.so: $(BUILD_DIR)/loguru.o $(BUILD_DIR)/libvolcano.o $(BUILD_DIR)/vulkan_symbol_wrapper.o $(BUILD_DIR)/volcano/volcano.o $(BUILD_DIR)/volcano/renderer/mesh.o
+libretro_volcano.so: $(BUILD_DIR)/loguru.o $(BUILD_DIR)/libvolcano.o $(BUILD_DIR)/vulkan_symbol_wrapper.o $(BUILD_DIR)/volcano/volcano.o $(BUILD_DIR)/volcano/renderer/mesh.o $(BUILD_DIR)/volcano/input/dispatcher.o
 	g++ -o $@ $^ -shared

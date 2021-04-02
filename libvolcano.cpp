@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "volcano/volcano.hpp"
+#include "volcano/input/dispatcher.hpp"
 #include "volcano/graphics/vertex.hpp"
 #include "volcano/renderer/mesh.hpp"
 
@@ -23,6 +24,8 @@ static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
+
+volcano::input::dispatcher dispatcher;
 
 static retro_hw_render_interface_vulkan* vulkan;
 volcano::renderer renderer;
