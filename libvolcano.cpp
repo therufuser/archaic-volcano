@@ -189,6 +189,11 @@ RETRO_CALLCONV void retro_context_reset() {
     .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
   });
   cube_data.push_back({
+    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
+  });
+  cube_data.push_back({
     .x = -cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
     .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
@@ -199,7 +204,7 @@ RETRO_CALLCONV void retro_context_reset() {
     .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
   });
   cube_data.push_back({
-    .x = cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
     .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
   });
@@ -208,14 +213,14 @@ RETRO_CALLCONV void retro_context_reset() {
     .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
     .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
   });
-  cube_data.push_back({
-    .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
-    .r = 1.0f, .g = 0.5f, .b = 1.0f, .a = 1.0f,
-    .n_x = 0.0f, .n_y = 0.0f, .n_z = 1.0f
-  });
   // Left face
   cube_data.push_back({
     .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
+    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
+    .x = -cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
     .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
   });
@@ -230,17 +235,12 @@ RETRO_CALLCONV void retro_context_reset() {
     .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
   });
   cube_data.push_back({
-    .x = -cube_length / 2, .y = -cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
     .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
   });
   cube_data.push_back({
     .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
-    .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
-    .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
-  });
-  cube_data.push_back({
-    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 1.0f, .b = 0.5f, .a = 1.0f,
     .n_x = -1.0f, .n_y = 0.0f, .n_z = 0.0f
   });
@@ -282,6 +282,11 @@ RETRO_CALLCONV void retro_context_reset() {
     .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
   });
   cube_data.push_back({
+    .x = cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
+    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
+  });
+  cube_data.push_back({
     .x = -cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
     .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
@@ -292,17 +297,12 @@ RETRO_CALLCONV void retro_context_reset() {
     .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
   });
   cube_data.push_back({
-    .x = cube_length / 2, .y = cube_length / 2, .z = cube_length / 2, .w = 1.0f,
+    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
     .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
   });
   cube_data.push_back({
     .x = cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
-    .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
-    .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
-  });
-  cube_data.push_back({
-    .x = -cube_length / 2, .y = cube_length / 2, .z = -cube_length / 2, .w = 1.0f,
     .r = 1.0f, .g = 0.5f, .b = 0.5f, .a = 1.0f,
     .n_x = 0.0f, .n_y = 1.0f, .n_z = 0.0f
   });
