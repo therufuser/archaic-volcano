@@ -548,10 +548,11 @@ namespace volcano {
   void renderer::update_ubo(void) {
     static unsigned frame;
 
-    float translate = 10.0f;
+    float translate_x = cam_x;
+    float translate_z = 10.0f + cam_y;
 
     glm::mat4 projection = glm::perspective(glm::pi<float>() * 0.25f, 1.0f / 1.0f, 0.1f, 100.f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -translate));
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(translate_x, 0.0f, -translate_z));
     view = glm::rotate(view, frame * 0.0031416926535f, glm::vec3(-1.0f, 0.0f, 0.0f));
     view = glm::rotate(view, frame * 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(5.0f));
@@ -717,5 +718,21 @@ namespace volcano {
   void renderer::add_mesh(std::vector<graphics::vertex>& vertices) {
     LOG_F(MAX, "Add new mesh (size=%d)", vertices.size());
     meshes.push_back(mesh(this, vertices.data(), vertices.size()));
+  }
+
+  void renderer::move_forward() {
+    cam_y += 0.1f;
+  }
+
+  void renderer::move_backward() {
+    cam_y -= 0.1f;
+  }
+
+  void renderer::move_left() {
+    cam_x -= 0.1f;
+  }
+
+  void renderer::move_right() {
+    cam_x += 0.1f;
   }
 }

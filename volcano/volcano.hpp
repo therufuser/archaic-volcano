@@ -53,6 +53,8 @@ namespace volcano {
       void init_swapchain();
       void update_ubo();
 
+      float cam_x, cam_y;
+
       class mesh;
       std::vector<mesh> meshes;
 
@@ -61,6 +63,11 @@ namespace volcano {
       void render();
 
       void add_mesh(std::vector<graphics::vertex>& vertices);
+
+      void move_forward();
+      void move_backward();
+      void move_left();
+      void move_right();
   };
 }
 
