@@ -659,9 +659,9 @@ namespace volcano {
     );
 
     VkViewport vp = {
-      .x        = 0.0f,
+      .x        = (WIDTH - HEIGHT) >> 1,
       .y        = 0.0f,
-      .width    = WIDTH,
+      .width    = HEIGHT,
       .height   = HEIGHT,
       .minDepth = 0.0f,
       .maxDepth = 1.0f,
