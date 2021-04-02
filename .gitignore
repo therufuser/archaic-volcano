@@ -1,2 +1,5 @@
 build
+volcano/shaders/*.inc
+debugging/*.rdc
+logs
 *.so
