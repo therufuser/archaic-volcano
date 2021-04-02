@@ -13,6 +13,10 @@
 #include <cstring>
 #include <cmath>
 
+#include <array>
+
+#define DEPTH_FORMAT VK_FORMAT_D32_SFLOAT
+
 namespace volcano {
   static retro_hw_render_interface_vulkan* vulkan_if;
 
@@ -163,7 +167,7 @@ namespace volcano {
   }
 
   void renderer::init_render_pass(VkFormat format) {
-    VkAttachmentDescription attachment = {
+    VkAttachmentDescription color_attachment = {
       .format         = format,
       .samples        = VK_SAMPLE_COUNT_1_BIT,
       .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -174,17 +178,43 @@ namespace volcano {
       .finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
-    VkAttachmentReference color_ref = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+    VkAttachmentReference color_ref = {
+      .attachment = 0,
+      .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    };
+
+    VkAttachmentDescription depth_attachment = {
+      .format         = DEPTH_FORMAT,
+      .samples        = VK_SAMPLE_COUNT_1_BIT,
+      .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
+      .finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    };
+
+    VkAttachmentReference depth_ref = {
+      .attachment = 1,
+      .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
+
     VkSubpassDescription subpass = {
-      .pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS,
-      .colorAttachmentCount = 1,
-      .pColorAttachments    = &color_ref,
+      .pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS,
+      .colorAttachmentCount    = 1,
+      .pColorAttachments       = &color_ref,
+      .pDepthStencilAttachment = &depth_ref
+    };
+
+    std::array<VkAttachmentDescription, 2> attachments = {
+      color_attachment,
+      depth_attachment
     };
 
     VkRenderPassCreateInfo rp_info = {
       .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-      .attachmentCount = 1,
-      .pAttachments    = &attachment,
+      .attachmentCount = attachments.size(),
+      .pAttachments    = attachments.data(),
       .subpassCount    = 1,
       .pSubpasses      = &subpass,
     };
@@ -344,6 +374,61 @@ namespace volcano {
   void renderer::init_swapchain() {
     VkDevice device = vulkan_if->device;
 
+    // Create depth-buffer image
+    VkImage depth_image;
+    VkDeviceMemory depth_image_memory;
+    VkImageView depth_image_view;
+
+    VkImageCreateInfo depth_image_create_info = {
+      .sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      .flags         = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT,
+      .imageType     = VK_IMAGE_TYPE_2D,
+      .format        = DEPTH_FORMAT,
+      .extent        = {
+        .width  = WIDTH,
+	.height = HEIGHT,
+	.depth  = 1
+      },
+      .mipLevels     = 1,
+      .arrayLayers   = 1,
+      .samples       = VK_SAMPLE_COUNT_1_BIT,
+      .tiling        = VK_IMAGE_TILING_OPTIMAL,
+      .usage         = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+
+    vkCreateImage(device, &depth_image_create_info, nullptr, &depth_image);
+
+    VkMemoryRequirements depth_mem_reqs;
+    vkGetImageMemoryRequirements(device, depth_image, &depth_mem_reqs);
+
+    VkMemoryAllocateInfo depth_alloc = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .allocationSize = depth_mem_reqs.size,
+      .memoryTypeIndex = find_memory_type_from_requirements(
+        depth_mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+      ),
+    };
+    vkAllocateMemory(device, &depth_alloc, nullptr, &depth_image_memory);
+    vkBindImageMemory(device, depth_image, depth_image_memory, 0);
+
+    VkImageViewCreateInfo depth_image_view_create_info = {
+      .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      .image            = depth_image,
+      .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+      .format           = DEPTH_FORMAT,
+      // Don't set .components here because default 0 is equivalent to identity-swizzle
+      .subresourceRange = {
+        .aspectMask     = VK_IMAGE_ASPECT_DEPTH_BIT,
+        .baseMipLevel   = 0,
+	.levelCount     = 1,
+        .baseArrayLayer = 0,
+	.layerCount     = 1
+      }
+    };
+
+    vkCreateImageView(device, &depth_image_view_create_info, nullptr, &depth_image_view);
+
     for (unsigned i = 0; i < this->num_swapchain_images; i++) {
       VkImageCreateInfo image = {
 	.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -407,11 +492,16 @@ namespace volcano {
       );
       this->images[i].image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
+      std::array<VkImageView, 2> image_attachments = {
+        this->images[i].image_view,
+	depth_image_view
+      };
+
       VkFramebufferCreateInfo fb_info = {
 	.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .renderPass      = this->render_pass,
-        .attachmentCount = 1,
-        .pAttachments    = &this->images[i].image_view,
+        .attachmentCount = image_attachments.size(),
+        .pAttachments    = image_attachments.data(),
         .width           = WIDTH,
         .height          = HEIGHT,
         .layers          = 1,
