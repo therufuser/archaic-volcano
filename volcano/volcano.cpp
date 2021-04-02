@@ -305,10 +305,11 @@ namespace volcano {
 
     VkPipelineDepthStencilStateCreateInfo depth_stencil = {
       .sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-      .depthTestEnable       = false,
-      .depthWriteEnable      = false,
-      .depthBoundsTestEnable = false,
-      .stencilTestEnable     = false,
+      .depthTestEnable       = VK_TRUE,
+      .depthWriteEnable      = VK_TRUE,
+      .depthCompareOp        = VK_COMPARE_OP_LESS,
+      .depthBoundsTestEnable = VK_FALSE,
+      .stencilTestEnable     = VK_FALSE,
     };
 
     VkPipelineMultisampleStateCreateInfo multisample = {
